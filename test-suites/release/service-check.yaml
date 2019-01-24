@@ -8,6 +8,8 @@ metadata:
         - openembedded
     scope:
         - functional
+params:
+  DEVICE_TAGS: ""
 
 run:
     steps:
