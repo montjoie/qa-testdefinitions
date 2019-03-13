@@ -19,16 +19,16 @@ fi
 #this first bitrate afford frames transmission or not
 ip link set can0 down
 if [ $? -eq 0 ];then
-        lava-test-case stop_can0 --result pass
+    lava-test-case stop_can0 --result pass
 else
-        lava-test-case stop_can0 --result fail
+    lava-test-case stop_can0 --result fail
 fi
 sleep 2
 ip link set can1 down
 if [ $? -eq 0 ];then
-        lava-test-case stop_can1 --result pass
+    lava-test-case stop_can1 --result pass
 else
-        lava-test-case stop_can1 --result fail
+    lava-test-case stop_can1 --result fail
 fi
 sleep 2
 
@@ -93,19 +93,19 @@ ip link set can0 down
 ip link set can1 down
 found_bitrate_for_transmisson=0
 for b in `seq 10790 10800`;do
-        ip link set can0 type can bitrate $b
-        ip link set can1 type can bitrate $b
-        ip link set can0 up
-        ip link set can1 up
-        sleep 3
-        file_can=$(mktemp)
+    ip link set can0 type can bitrate $b
+    ip link set can1 type can bitrate $b
+    ip link set can0 up
+    ip link set can1 up
+    sleep 3
+    file_can=$(mktemp)
 	cangen can0 &
 	candump can1 > $file_can &
 	sleep 4
-        if [ -s $file_can ];then
+    if [ -s $file_can ];then
 		found_bitrate_for_transmisson=1
 		lava-test-case Receive_can1 --result pass --measurement $b --units bit/s
-        	sleep 2
+        sleep 2
 		echo "$b is the first supportable bitrate to provide transmission"
 		break
 	fi
@@ -127,15 +127,15 @@ ip link set can0 down
 ip link set can1 down
 bitrate_no_transmission=0
 for b in `seq 1909088 1909092`;do
-        ip link set can0 type can bitrate $b
-        ip link set can1 type can bitrate $b
-        ip link set can0 up
-        ip link set can1 up
-        sleep 2
-        file_can=$(mktemp)
-        cangen can0 &
-        candump can1 > $file_can &
-        sleep 3
+    ip link set can0 type can bitrate $b
+    ip link set can1 type can bitrate $b
+    ip link set can0 up
+    ip link set can1 up
+    sleep 2
+    file_can=$(mktemp)
+    cangen can0 &
+    candump can1 > $file_can &
+    sleep 3
 	size=$(stat -c %s $file_can)
 	if [ $size -eq 0 ];then
 		bitrate_no_transmission=1
@@ -148,7 +148,7 @@ for b in `seq 1909088 1909092`;do
 	fi
 	ip link set can0 down
 	ip link set can1 down
-        rm $file_can
+    rm $file_can
 done
 
 if [ $bitrate_no_transmission -eq 0 ];then
