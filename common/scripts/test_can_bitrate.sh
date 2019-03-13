@@ -107,6 +107,7 @@ for b in `seq 10790 10800`;do
 		lava-test-case Receive_can1 --result pass --measurement $b --units bit/s
         sleep 2
 		echo "$b is the first supportable bitrate to provide transmission"
+		rm $file_can
 		break
 	fi
 	ip link set can0 down
