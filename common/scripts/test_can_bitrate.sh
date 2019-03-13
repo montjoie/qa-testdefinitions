@@ -73,9 +73,9 @@ for b in `seq 778 790`;do
 			lava-test-case Receive_can1 --result fail --measurement $b --units bit/s
 			sleep 2
 			echo "This bitrate $b belongs to the domain but doesn't provide frames transmission"
-			break
 		fi
 		rm $file_can
+		break
 	fi
 done
 
