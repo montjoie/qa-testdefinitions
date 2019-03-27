@@ -1,0 +1,13 @@
+metadata:
+  name: Application Lifecycle Workflow Test
+  format: "Lava-Test-Shell Test Definition 1.0"
+  description: "Application Lifecycle Workflow Test (fetch, uninstall, install, start, stop)"
+  version: 1.0
+run:
+    steps:
+      - echo "Application Lifecycle Workflow Tests"
+      - chmod +x ./common/scripts/application-lifecycle.sh
+      - ./common/scripts/application-lifecycle.sh -b $APPURL
+
+params:
+  APPURL: ""
