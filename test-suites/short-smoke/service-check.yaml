@@ -8,8 +8,11 @@ metadata:
         - openembedded
     scope:
         - functional
+params:
+  BUILD_TAGS: ""
+  DEVICE_TAGS: ""
 
 run:
     steps:
-        - "cd common/scripts"
-        - "./service-check-gfx.sh"
+        - cd common/scripts
+        - ./service-check-gfx.sh -b "${BUILD_TAGS}" -d "${DEVICE_TAGS}"

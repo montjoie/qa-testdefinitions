@@ -3,6 +3,21 @@
 export LANG=C
 export TERM=dumb
 
+while getopts ":b:d:" option; do
+    case "${option}" in
+        b)
+            if [[ $OPTARG = -* ]]; then
+                ((OPTIND--))
+                continue
+            fi
+            BUILD_TAGS=${OPTARG}
+            ;;
+        d)
+            DEVICE_TAGS=${OPTARG}
+            ;;
+    esac
+done
+
 REQUIREDSOCKETS="cynara.socket dbus.socket security-manager.socket"
 REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service weston.service bluetooth.service"
 
@@ -14,12 +29,19 @@ sleep 10
 
 for i in ${ALL} ; do
     echo -e "\n\n########## Test for service ${i} being active ##########\n\n"
-
-    systemctl is-active ${i} >/dev/null 2>&1
-    if [ $? -eq 0 ] ; then
-        RESULT="pass"
-    else
-        RESULT="fail"
+    RESULT=""
+    if [[ ${i} == "weston.service" ]]; then
+        if [[ ${DEVICE_TAGS} != *"screen"* ]] || [[ ${BUILD_TAGS} != *"screen"* ]]; then
+            RESULT="skip"
+        fi
+    fi
+    if [[ -z $RESULT ]]; then
+        systemctl is-active ${i} >/dev/null 2>&1
+        if [ $? -eq 0 ] ; then
+            RESULT="pass"
+        else
+            RESULT="fail"
+        fi
     fi
 
     lava-test-case ${i} --result ${RESULT}
