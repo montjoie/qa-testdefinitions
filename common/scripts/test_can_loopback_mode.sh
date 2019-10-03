@@ -9,6 +9,11 @@ if [ ! -e /sys/class/net/can0 ];then
         exit 0
 fi
 sleep 2
+
+#Make sure always that the can interface is down before
+#starting the config step.
+ip link set can0 down
+
 #config the can interfaces
 ip link set can0 type can bitrate 50000 loopback on
 sleep 2

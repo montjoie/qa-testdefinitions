@@ -13,6 +13,11 @@ if [ ! -e /sys/class/net/can1 ];then
 	exit 0
 fi
 
+#Make sure always that the can interface is down before
+#starting the config step.
+ip link set can0 down
+ip link set can1 down
+
 #config the can interfaces
 ip link set can0 type can bitrate 50000
 if [ $? -eq 0 ];then
