@@ -121,6 +121,11 @@ fi
 
 sleep 5
 
+#Make sure always that the can interface is down before
+#starting the config step.
+ip link set can0 down
+ip link set can1 down
+
 ip link set can0 type can bitrate 50000
 if [ $? -eq 0 ];then
 	lava-test-case canconfig_can0 --result pass
