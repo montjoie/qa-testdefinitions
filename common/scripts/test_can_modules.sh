@@ -8,13 +8,11 @@ if [ ! -e /sys/class/net/can1 ];then
 	lava-test-case unload_c_can_module --result skipp
 	lava-test-case unload_can_dev_module --result skip
 	lava-test-case canconfig_can0 --result skip
-	lava-test-case canconfig_can1 --result skip
 	lava-test-case load_can_module --result skip
 	lava-test-case load_can_raw_module --result skip
 	lava-test-case load_c_can_module --result skip
 	lava-test-case load_can_dev_module --result skip
 	lava-test-case canconfig_can0 --result skip
-	lava-test-case canconfig_can1 --result skip
         exit 0
 fi
 lsmod | grep can
@@ -70,14 +68,6 @@ else
 	lava-test-case canconfig_can0 --result pass
 fi
 
-sleep 3
-
-ip link set can1 type can bitrate 50000
-if [ $? -eq 0 ];then
-	lava-test-case canconfig_can1 --result fail
-else
-	lava-test-case canconfig_can1 --result pass
-fi
 
 sleep 5
 
@@ -124,21 +114,12 @@ sleep 5
 #Make sure always that the can interface is down before
 #starting the config step.
 ip link set can0 down
-ip link set can1 down
 
 ip link set can0 type can bitrate 50000
 if [ $? -eq 0 ];then
 	lava-test-case canconfig_can0 --result pass
 else
 	lava-test-case canconfig_can0 --result fail
-fi
-
-sleep 3
-ip link set can1 type can bitrate 50000
-if [ $? -eq 0 ];then
-	lava-test-case canconfig_can1 --result pass
-else
-	lava-test-case canconfig_can1 --result fail
 fi
 
 sleep 3

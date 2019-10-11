@@ -1,25 +1,20 @@
-# these tests are applicable if and only if the board to be used has two CAN interfaces
+# These tests are applicable if and only if the board to be used has two CAN interfaces.
+# These two interfaces should be wired to eachother.
 
 metadata:
-  name: my_can_test
+  name: can_if_hw_connection_test
   format: "Lava-Test-Shell Test Definition 1.0"
-  description: "my_can_test"
+  description: "can_if_hw_connection_test"
   version: 1.0
 
 run:
   steps:
         - echo "CAN_tests"
-        - lava-test-set start test_can_loopback_mode
-        - ./common/scripts/test_can_loopback_mode.sh
-        - lava-test-set stop
         - lava-test-set start test_can_send_receive
         - ./common/scripts/test_can_send_receive.sh
         - lava-test-set stop
         - lava-test-set start test_stats
         - ./common/scripts/test_stats.sh
-        - lava-test-set stop
-        - lava-test-set start test_can_modules
-        - ./common/scripts/test_can_modules.sh
         - lava-test-set stop
         - lava-test-set start test_can_bitrate
         - ./common/scripts/test_can_bitrate.sh

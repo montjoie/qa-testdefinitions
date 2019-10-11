@@ -1,0 +1,17 @@
+# These tests are applicable if the board to be used has at least one CAN interface.
+
+metadata:
+  name: Test_can_loopback
+  format: "Lava-Test-Shell Test Definition 1.0"
+  description: "Test_can_loopback"
+  version: 1.0
+
+run:
+  steps:
+        - echo "basic_CAN_tests"
+        - lava-test-set start test_can_loopback_mode
+        - ./common/scripts/test_can_loopback_mode.sh
+        - lava-test-set stop
+        - lava-test-set start test_can_modules
+        - ./common/scripts/test_can_modules.sh
+        - lava-test-set stop
