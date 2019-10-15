@@ -69,9 +69,9 @@ for b in `seq 778 790`;do
 		candump can1 > $file_can &
 		sleep 3
 		if [ -s $file_can ];then
-			lava-test-case can1_xfer_config_range_start --result pass --measurement $b --units bit/s
-		else
 			lava-test-case can1_xfer_config_range_start --result fail --measurement $b --units bit/s
+		else
+			lava-test-case can1_xfer_config_range_start --result pass --measurement $b --units bit/s
 			sleep 2
 			echo "This bitrate $b belongs to the domain but doesn't provide frames transmission"
 		fi
