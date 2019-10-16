@@ -29,9 +29,20 @@ if [ $? -ne 0 ];then
 	exit 1
 fi
 
+do_afm_util()
+{
+	if [ $NEED_SU -eq 1 ];then
+		su - agl-driver -c "afm-util $*"
+	else
+		afm-util $*
+	fi
+	return $?
+}
+
 grep -o '[a-z-]*.wgt' index.html | sort | uniq |
 while read wgtfile
 do
+	NEED_SU=0
 	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,')
 	echo "DEBUG: fetch $wgtfile"
 	wget -q $BASEURL/$wgtfile
@@ -42,12 +53,16 @@ do
 
 	echo "DEBUG: analyse wgt file"
 	unzip $wgtfile
-	if [ $? -eq 0 ];then
+	if [ -e config.xml ];then
 		grep hidden config.xml
 		if [ $? -eq 0 ];then
 			echo "DEBUG: hidden package"
 		else
 			echo "DEBUG: not hidden package"
+		fi
+		grep -q 'urn:AGL:permission::partner:scope-platform' config.xml
+		if [ $? -ne 0 ];then
+			NEED_SU=1
 		fi
 	else
 		echo "DEBUG: fail to unzip"
@@ -56,13 +71,13 @@ do
 	echo "DEBUG: list current pkgs"
 	# TODO mktemp
 	LIST='list'
-	afm-util list --all > $LIST
+	do_afm_util list --all > $LIST
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util list exit with error"
+		echo "ERROR: do_afm_util list exit with error"
 		continue
 	fi
 	if [ ! -s "$LIST" ];then
-		echo "ERROR: afm-util list is empty"
+		echo "ERROR: do_afm_util list is empty"
 		continue
 	fi
 
@@ -71,12 +86,12 @@ do
 	if [ ! -z "$NAMEID" ];then
 		echo "DEBUG: $WGTNAME already installed as $NAMEID"
 		# need to kill then deinstall
-		afm-util ps | grep -q $WGTNAME
+		do_afm_util ps | grep -q $WGTNAME
 		if [ $? -eq 0 ];then
 			echo "DEBUG: kill $WGTNAME"
-			afm-util kill $WGTNAME
+			do_afm_util kill $WGTNAME
 			if [ $? -ne 0 ];then
-				echo "ERROR: afm-util kill"
+				echo "ERROR: do_afm_util kill"
 				lava-test-case afm-util-pre-kill-$WGTNAME --result fail
 				continue
 			else
@@ -87,9 +102,9 @@ do
 		fi
 
 		echo "DEBUG: deinstall $WGTNAME"
-		afm-util remove $NAMEID
+		do_afm_util remove $NAMEID
 		if [ $? -ne 0 ];then
-			echo "ERROR: afm-util remove"
+			echo "ERROR: do_afm_util remove"
 			lava-test-case afm-util-remove-$WGTNAME --result fail
 			continue
 		else
@@ -102,9 +117,9 @@ do
 
 	echo "DEBUG: install $wgtfile"
 	OUT="out"
-	afm-util install $wgtfile > $OUT
+	do_afm_util install $wgtfile > $OUT
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util install"
+		echo "ERROR: do_afm_util install"
 		lava-test-case afm-util-install-$WGTNAME --result fail
 		continue
 	else
@@ -118,13 +133,13 @@ do
 	fi
 	echo "DEBUG: $WGTNAME is installed as $NAMEID"
 
-	afm-util list --all > $LIST
+	do_afm_util list --all > $LIST
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util list exit with error"
+		echo "ERROR: do_afm_util list exit with error"
 		continue
 	fi
 	if [ ! -s "$LIST" ];then
-		echo "ERROR: afm-util list is empty"
+		echo "ERROR: do_afm_util list is empty"
 		continue
 	fi
 	echo "DEBUG: Verify that $WGTNAME is installed"
@@ -137,9 +152,9 @@ do
 		echo "DEBUG: end of list"
 	fi
 
-	afm-util info $NAMEID
+	do_afm_util info $NAMEID
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util info"
+		echo "ERROR: do_afm_util info"
 		lava-test-case afm-util-info-$WGTNAME --result fail
 	else
 		lava-test-case afm-util-info-$WGTNAME --result pass
@@ -151,10 +166,15 @@ do
 	systemctl -a |grep "afm.*$WGTNAME"
 
 	echo "DEBUG: start $NAMEID"
-	afm-util start $NAMEID > "rid"
+	do_afm_util start $NAMEID > "rid"
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util start"
+		echo "ERROR: do_afm_util start"
 		lava-test-case afm-util-start-$WGTNAME --result fail
+	    echo "==============================================="
+	    echo "=============================================== journalctl start"
+	    journalctl -xe
+	    echo "=============================================== journalctl end"
+	    echo "==============================================="
 		continue
 	else
 		lava-test-case afm-util-start-$WGTNAME --result pass
@@ -167,9 +187,9 @@ do
 
 	echo "DEBUG: Get RID for $NAMEID"
 	PSLIST="pslist"
-	afm-util ps > $PSLIST
+	do_afm_util ps > $PSLIST
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util ps"
+		echo "ERROR: do_afm_util ps"
 		lava-test-case afm-util-ps-$WGTNAME --result fail
 		continue
 	else
@@ -180,9 +200,9 @@ do
 	RID="$(cat rid)"
 
 	echo "DEBUG: status $NAMEID ($RID)"
-	afm-util status $RID
+	do_afm_util status $RID
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util status"
+		echo "ERROR: do_afm_util status"
 		lava-test-case afm-util-status-$WGTNAME --result fail
 		continue
 	else
@@ -190,9 +210,9 @@ do
 	fi
 
 	echo "DEBUG: kill $NAMEID ($RID)"
-	afm-util kill $NAMEID
+	do_afm_util kill $NAMEID
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util kill"
+		echo "ERROR: do_afm_util kill"
 		lava-test-case afm-util-kill-$WGTNAME --result fail
 		continue
 	else
@@ -200,9 +220,9 @@ do
 	fi
 
 	echo "DEBUG: start2 $NAMEID"
-	afm-util start $NAMEID
+	do_afm_util start $NAMEID
 	if [ $? -ne 0 ];then
-		echo "ERROR: afm-util start2"
+		echo "ERROR: do_afm_util start2"
 		lava-test-case afm-util-start2-$WGTNAME --result fail
 		continue
 	else

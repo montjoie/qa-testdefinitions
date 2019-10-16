@@ -18,6 +18,12 @@ while getopts ":b:d:" option; do
     esac
 done
 
+cat /lib/systemd/system/bluetooth.service
+cat /lib/systemd/system/connman.service
+sed -i 's,StandardOutput=null,,' /lib/systemd/system/connman.service
+systemctl daemon-reload
+ls -l /var/log/
+
 REQUIREDSOCKETS="cynara.socket dbus.socket security-manager.socket"
 REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service weston.service bluetooth.service"
 
@@ -41,6 +47,12 @@ for i in ${ALL} ; do
             RESULT="pass"
         else
             RESULT="fail"
+	    echo "==============================================="
+	    echo "=============================================== journalctl start"
+	    journalctl -xe
+	    echo "=============================================== journalctl end"
+	    dmesg | tail
+	    echo "==============================================="
         fi
     fi
 
