@@ -1,6 +1,13 @@
 #!/bin/sh
 
+set -x
+
 export TERM=dumb
+
+SERVICE_PLATFORM=0
+SERVICE_USER=0
+APPLICATION_USER=0
+AGLDRIVER=agl-driver
 
 while [ $# -ge 1 ]
 do
@@ -48,6 +55,19 @@ do
 			echo "DEBUG: hidden package"
 		else
 			echo "DEBUG: not hidden package"
+		fi
+		# a service sets urn:AGL:widget:provided-api
+		if $(grep "urn:AGL:widget:provided-api" config.xml) ; then
+		    # we are a service, now determine the scope ...
+		    if $(grep "urn:AGL:permission::partner:scope-platform" config.xml) ; then
+			SERVICE_PLATFORM=1
+		    else
+			SERVICE_USER=1
+		    fi
+		else
+		    # we are an application
+		    APPLICATION_USER=1
+		    # no other type known (yet)
 		fi
 	else
 		echo "DEBUG: fail to unzip"
@@ -150,8 +170,24 @@ do
 	echo "DEBUG: check if we see the package with systemctl -a (before start)"
 	systemctl -a |grep "afm.*$WGTNAME"
 
+	# here we need to differ between SERVICE_PLATFORM, SERVICE_USER and APPLICATION_USER
+	if test x"1" = x"$SERVICE_PLATFORM" ; then
+	    PRE_CMD="su -c"
+	fi
+	if test x"1" = x"$SERVICE_USER" ; then
+	    PRE_CMD="su $AGLDRIVER -c"
+	fi
+	if test x"1" = x"$APPLICATION_USER" ; then
+	    PRE_CMD="su $AGLDRIVER -c"
+	fi
+
+	# construct the command to call
+	CMD=( "$PRE_CMD" )
+	CMD+=( " ' " )
+	CMD+=( "afm-util start $NAMEID" )
+	CMD+=( " ' " )
 	echo "DEBUG: start $NAMEID"
-	afm-util start $NAMEID > "rid"
+	exec "${CMD[@]}"  > "rid"
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start"
 		lava-test-case afm-util-start-$WGTNAME --result fail
@@ -200,7 +236,7 @@ do
 	fi
 
 	echo "DEBUG: start2 $NAMEID"
-	afm-util start $NAMEID
+	exec "${CMD[@]}"
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start2"
 		lava-test-case afm-util-start2-$WGTNAME --result fail
