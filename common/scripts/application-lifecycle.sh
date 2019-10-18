@@ -49,7 +49,7 @@ do
 
 	echo "DEBUG: analyse wgt file"
 	unzip $wgtfile
-	if [ $? -eq 0 ];then
+	if [ -f config.xml ];then
 		grep hidden config.xml
 		if [ $? -eq 0 ];then
 			echo "DEBUG: hidden package"
@@ -172,22 +172,24 @@ do
 
 	# here we need to differ between SERVICE_PLATFORM, SERVICE_USER and APPLICATION_USER
 	if test x"1" = x"$SERVICE_PLATFORM" ; then
-	    PRE_CMD="su -c"
+	    PRE_CMD="su -c ' "
+	    POST_CMD=" '"
 	fi
 	if test x"1" = x"$SERVICE_USER" ; then
-	    PRE_CMD="su $AGLDRIVER -c"
+	    PRE_CMD="su $AGLDRIVER -c '"
+	    POST_CMD=" '"
 	fi
 	if test x"1" = x"$APPLICATION_USER" ; then
-	    PRE_CMD="su $AGLDRIVER -c"
+	    PRE_CMD="su $AGLDRIVER -c '"
+	    POST_CMD=" '"
 	fi
 
 	# construct the command to call
 	CMD=( "$PRE_CMD" )
-	CMD+=( " ' " )
 	CMD+=( "afm-util start $NAMEID" )
-	CMD+=( " ' " )
+	CMD+=( "$POST_CMD" )
 	echo "DEBUG: start $NAMEID"
-	exec "${CMD[@]}"  > "rid"
+	${CMD[@]}  > "rid"
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start"
 		lava-test-case afm-util-start-$WGTNAME --result fail
