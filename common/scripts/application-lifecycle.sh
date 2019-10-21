@@ -4,9 +4,6 @@ set -x
 
 export TERM=dumb
 
-SERVICE_PLATFORM=0
-SERVICE_USER=0
-APPLICATION_USER=0
 AGLDRIVER=agl-driver
 
 while [ $# -ge 1 ]
@@ -30,6 +27,16 @@ if [ -z "$BASEURL" ]; then
 	exit 1
 fi
 
+do_afm_util()
+{
+	if [ $SERVICE_USER -eq 1 -o $APPLICATION_USER -eq 1 ];then
+		su - $AGLDRIVER -c "afm-util $*"
+	else
+		afm-util $*
+	fi
+	return $?
+}
+
 wget -q $BASEURL -O index.html
 if [ $? -ne 0 ];then
 	echo "ERROR: Cannot wget $BASEURL"
@@ -40,6 +47,9 @@ grep -o '[a-z-]*.wgt' index.html | sort | uniq |
 while read wgtfile
 do
 	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,')
+	SERVICE_PLATFORM=0
+	SERVICE_USER=0
+	APPLICATION_USER=0
 	echo "DEBUG: fetch $wgtfile"
 	wget -q $BASEURL/$wgtfile
 	if [ $? -ne 0 ];then
@@ -49,6 +59,10 @@ do
 
 	echo "DEBUG: analyse wgt file"
 	unzip $wgtfile
+	if [ $? -ne 0 ];then
+		# TODO Do not fail yet, busybox unzip seems to "fail with success" when checking CRC
+		echo "ERROR: cannot unzip $wgtfile"
+	fi
 	if [ -f config.xml ];then
 		grep hidden config.xml
 		if [ $? -eq 0 ];then
@@ -170,26 +184,8 @@ do
 	echo "DEBUG: check if we see the package with systemctl -a (before start)"
 	systemctl -a |grep "afm.*$WGTNAME"
 
-	# here we need to differ between SERVICE_PLATFORM, SERVICE_USER and APPLICATION_USER
-	if test x"1" = x"$SERVICE_PLATFORM" ; then
-	    PRE_CMD="su -c ' "
-	    POST_CMD=" '"
-	fi
-	if test x"1" = x"$SERVICE_USER" ; then
-	    PRE_CMD="su $AGLDRIVER -c '"
-	    POST_CMD=" '"
-	fi
-	if test x"1" = x"$APPLICATION_USER" ; then
-	    PRE_CMD="su $AGLDRIVER -c '"
-	    POST_CMD=" '"
-	fi
-
-	# construct the command to call
-	CMD=( "$PRE_CMD" )
-	CMD+=( "afm-util start $NAMEID" )
-	CMD+=( "$POST_CMD" )
 	echo "DEBUG: start $NAMEID"
-	${CMD[@]}  > "rid"
+	do_afm_util start $NAMEID > "rid"
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start"
 		lava-test-case afm-util-start-$WGTNAME --result fail
@@ -238,7 +234,7 @@ do
 	fi
 
 	echo "DEBUG: start2 $NAMEID"
-	exec "${CMD[@]}"
+	do_afm_util start $NAMEID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start2"
 		lava-test-case afm-util-start2-$WGTNAME --result fail
