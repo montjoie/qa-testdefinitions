@@ -30,8 +30,10 @@ fi
 do_afm_util()
 {
 	if [ $SERVICE_USER -eq 1 -o $APPLICATION_USER -eq 1 ];then
+		echo "DEBUG: do_afm_util as $AGLDRIVER"
 		su - $AGLDRIVER -c "afm-util $*"
 	else
+		echo "DEBUG: do_afm_util as $(whoami)"
 		afm-util $*
 	fi
 	return $?
@@ -71,9 +73,11 @@ do
 			echo "DEBUG: not hidden package"
 		fi
 		# a service sets urn:AGL:widget:provided-api
-		if $(grep "urn:AGL:widget:provided-api" config.xml) ; then
+		grep "urn:AGL:widget:provided-api" config.xml
+		if [ $? -eq 0 ] ; then
 		    # we are a service, now determine the scope ...
-		    if $(grep "urn:AGL:permission::partner:scope-platform" config.xml) ; then
+		    grep "urn:AGL:permission::partner:scope-platform" config.xml
+		    if [ $? -eq 0 ];then
 			SERVICE_PLATFORM=1
 		    else
 			SERVICE_USER=1
