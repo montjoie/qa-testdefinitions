@@ -30,10 +30,8 @@ fi
 do_afm_util()
 {
 	if [ $SERVICE_USER -eq 1 -o $APPLICATION_USER -eq 1 ];then
-		echo "DEBUG: do_afm_util as $AGLDRIVER"
 		su - $AGLDRIVER -c "afm-util $*"
 	else
-		echo "DEBUG: do_afm_util as $(whoami)"
 		afm-util $*
 	fi
 	return $?
