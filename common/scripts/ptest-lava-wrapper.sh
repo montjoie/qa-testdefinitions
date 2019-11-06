@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REQUIREDPTESTS="acl attr cynara xmlsec1 libxml2 lua"
+REQUIREDPTESTS="acl attr xmlsec1 libxml2 lua"
 # NOT: systemd openssl openssh
 # Check if ptest packages are installed
 
