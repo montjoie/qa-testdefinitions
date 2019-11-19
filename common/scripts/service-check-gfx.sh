@@ -2,6 +2,7 @@
 
 export LANG=C
 export TERM=dumb
+export COLUMNS=1000
 
 while getopts ":b:d:" option; do
     case "${option}" in
@@ -18,8 +19,22 @@ while getopts ":b:d:" option; do
     esac
 done
 
+echo "=============================================== Hack timeout"
+cp /etc/systemd/system/bluetooth.target.wants/bluetooth.service /tmp/
+sed -i 's,=full,=full\nTimeoutSec=1200\nTimeoutStartSec=1200\nExecStartPre=sleep 10,' /etc/systemd/system/bluetooth.target.wants/bluetooth.service
+diff -u /tmp/bluetooth.service /etc/systemd/system/bluetooth.target.wants/bluetooth.service
+
+find /etc |grep bluetooth |
+while read line
+do
+echo "=============================================== $line"
+cat $line
+echo "==============================================="
+done
+
+echo "==============================================="
 REQUIREDSOCKETS="dbus.socket security-manager.socket"
-REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service weston.service bluetooth.service"
+REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service weston.service bluetooth.service systemd-modules-load.service avahi-daemon.service neard.service"
 
 ALL="${REQUIREDSOCKETS} ${REQUIREDSERVICES}"
 RESULT="unknown"
@@ -41,6 +56,12 @@ for i in ${ALL} ; do
             RESULT="pass"
         else
             RESULT="fail"
+           echo "==============================================="
+           echo "=============================================== journalctl start"
+           journalctl -xe
+           echo "=============================================== journalctl end"
+           dmesg | tail
+           echo "==============================================="
         fi
     fi
 
