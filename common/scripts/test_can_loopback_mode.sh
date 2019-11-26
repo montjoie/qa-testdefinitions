@@ -14,8 +14,9 @@ if [ ! -e /sys/class/net/can0 ];then
 fi
 
 sleep 2
-
-ip -V |grep -q BusyBox
+set -x
+ip -V | grep -q -i BusyBox
+set +x
 if [ $? -eq 0 ];then
 	echo "WARN: busybox ip is not handled"
 	# busybox ip does not handle bitrate option
