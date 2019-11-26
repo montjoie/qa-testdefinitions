@@ -10,6 +10,10 @@ if [ ! -e /sys/class/net/can0 ];then
 fi
 sleep 2
 
+ip -V
+/bin/ip -V
+/sbin/ip -V
+
 #Make sure always that the can interface is down before
 #starting the config step.
 ip link set can0 down
