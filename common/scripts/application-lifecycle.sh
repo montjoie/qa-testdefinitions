@@ -3,6 +3,7 @@
 set -x
 
 export TERM=dumb
+export COLUMNS=1000
 
 AGLDRIVER=agl-driver
 

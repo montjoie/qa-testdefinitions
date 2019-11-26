@@ -2,6 +2,7 @@
 
 export LANG=C
 export TERM=dumb
+export COLUMNS=1000
 
 while getopts ":b:d:" option; do
     case "${option}" in

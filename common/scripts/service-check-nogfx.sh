@@ -2,6 +2,7 @@
 
 export LANG=C
 export TERM=dumb
+export COLUMNS=1000
 
 REQUIREDSOCKETS="dbus.socket security-manager.socket"
 REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service bluetooth.service"
