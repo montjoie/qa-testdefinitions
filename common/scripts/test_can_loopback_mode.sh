@@ -1,14 +1,26 @@
 #!/bin/sh
 
-if [ ! -e /sys/class/net/can0 ];then
+skip_tests() {
         lava-test-case canconfig_can0 --result skip
         lava-test-case start_can0 --result skip
         lava-test-case send_frames_through_can0 --result skip
         lava-test-case receive_frames_through_can0 --result skip
         lava-test-case stop_can0 --result skip
         exit 0
+}
+
+if [ ! -e /sys/class/net/can0 ];then
+	skip_tests
 fi
+
 sleep 2
+
+ip -V |grep -q BusyBox
+if [ $? -eq 0 ];then
+	echo "WARN: busybox ip is not handled"
+	# busybox ip does not handle bitrate option
+	skip_tests
+fi
 
 #Make sure always that the can interface is down before
 #starting the config step.
