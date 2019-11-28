@@ -108,7 +108,7 @@ do
 	if [ ! -z "$NAMEID" ];then
 		echo "DEBUG: $WGTNAME already installed as $NAMEID"
 		# need to kill then deinstall
-		afm-util ps | grep -q $WGTNAME
+		afm-util ps --all | grep -q $WGTNAME
 		if [ $? -eq 0 ];then
 			echo "DEBUG: kill $WGTNAME"
 			afm-util kill $WGTNAME
@@ -174,7 +174,7 @@ do
 		echo "DEBUG: end of list"
 	fi
 
-	afm-util info $NAMEID
+	do_afm_util info $NAMEID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util info"
 		lava-test-case afm-util-info-$WGTNAME --result fail
@@ -204,7 +204,7 @@ do
 
 	echo "DEBUG: Get RID for $NAMEID"
 	PSLIST="pslist"
-	afm-util ps > $PSLIST
+	afm-util ps --all > $PSLIST
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util ps"
 		lava-test-case afm-util-ps-$WGTNAME --result fail
@@ -217,7 +217,7 @@ do
 	RID="$(cat rid)"
 
 	echo "DEBUG: status $NAMEID ($RID)"
-	afm-util status $RID
+	do_afm_util status $RID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util status"
 		lava-test-case afm-util-status-$WGTNAME --result fail
