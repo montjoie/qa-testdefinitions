@@ -1,5 +1,7 @@
 #!/bin/sh
 
+RCAR_CAN=0
+
 if [ ! -e /sys/class/net/can1 ];then
 	lava-test-case show_can_modules --result skip
 	lava-test-case unload_can_raw_module --result skip
@@ -48,7 +50,13 @@ remove_module c_can_platform
 
 remove_module c_can
 
-remove_module can_dev unload_can_dev_module
+lsmod | grep -q rcar_can
+if [ $? -eq 0 ];then
+	RCAR_CAN=1
+	remove_module rcar_can
+fi
+
+remove_module can_dev
 
 ip -V | grep -q -i BusyBox
 if [ $? -eq 0 ];then
@@ -71,6 +79,10 @@ modprobe_module c_can
 modprobe_module c_can_platform
 
 modprobe_module can_dev
+
+if [ $RCAR_CAN -eq 1 ];then
+	modprobe_module rcar_can
+fi
 
 #Make sure always that the can interface is down before
 #starting the config step.
