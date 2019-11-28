@@ -227,7 +227,7 @@ do
 	fi
 
 	echo "DEBUG: kill $NAMEID ($RID)"
-	afm-util kill $NAMEID
+	do_afm_util kill $NAMEID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util kill"
 		lava-test-case afm-util-kill-$WGTNAME --result fail
