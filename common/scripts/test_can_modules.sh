@@ -50,7 +50,7 @@ remove_module c_can
 
 remove_module can_dev unload_can_dev_module
 
-ip -V | grep -q -i BusyBox
+ip -V 2>&1 | grep -q -i BusyBox
 if [ $? -eq 0 ];then
 	lava-test-case canconfig_can0 --result skip
 else
@@ -76,7 +76,7 @@ modprobe_module can_dev
 #starting the config step.
 ip link set can0 down
 
-ip -V | grep -q -i BusyBox
+ip -V 2>&1 | grep -q -i BusyBox
 if [ $? -eq 0 ];then
 	lava-test-case canconfig_can0 --result skip
 else

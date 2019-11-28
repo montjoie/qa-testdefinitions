@@ -15,9 +15,10 @@ fi
 
 sleep 2
 set -x
-ip -V | grep -q -i BusyBox
+ip -V 2>&1 | grep -q -i BusyBox
+RET=$?
 set +x
-if [ $? -eq 0 ];then
+if [ $RET -eq 0 ];then
 	echo "WARN: busybox ip is not handled"
 	# busybox ip does not handle bitrate option
 	skip_tests
