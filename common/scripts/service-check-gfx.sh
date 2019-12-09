@@ -42,6 +42,16 @@ for i in ${ALL} ; do
             RESULT="pass"
         else
             RESULT="fail"
+            if [[ ${i} == "bluetooth.service" ]]; then
+                if [[ ${DEVICE_TAGS} != *"bluetooth"* ]] || [[ ${BUILD_TAGS} != *"bluetooth"* ]]; then
+                    RESULT="skip"
+                fi
+            fi
+            if [[ ${i} == "ofono.service" ]]; then
+                if [[ ${DEVICE_TAGS} != *"bluetooth"* ]] || [[ ${BUILD_TAGS} != *"bluetooth"* ]]; then
+                    RESULT="skip"
+                fi
+            fi
         fi
     fi
 
