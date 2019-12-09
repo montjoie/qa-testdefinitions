@@ -10,8 +10,9 @@ REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service blueto
 ALL="${REQUIREDSOCKETS} ${REQUIREDSERVICES}"
 RESULT="unknown"
 
+echo "Started with $DEVICE_TAGS and $BUILD_TAGS"
 # add delay for services to fully start
-sleep 5
+sleep 310
 
 for i in ${ALL} ; do
     echo -e "\n\n########## Test for service ${i} being active ##########\n\n"
@@ -21,6 +22,16 @@ for i in ${ALL} ; do
         RESULT="pass"
     else
         RESULT="fail"
+        if [[ ${i} == "bluetooth.service" ]]; then
+            if [[ ${DEVICE_TAGS} != *"bluetooth"* ]] || [[ ${BUILD_TAGS} != *"bluetooth"* ]]; then
+                RESULT="skip"
+            fi
+        fi
+        if [[ ${i} == "ofono.service" ]]; then
+            if [[ ${DEVICE_TAGS} != *"bluetooth"* ]] || [[ ${BUILD_TAGS} != *"bluetooth"* ]]; then
+                RESULT="skip"
+            fi
+        fi
     fi
 
     lava-test-case ${i} --result ${RESULT}
