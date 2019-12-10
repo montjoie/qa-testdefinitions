@@ -153,7 +153,7 @@ for b in `seq 1909088 1909092`;do
 done
 
 if [ $bitrate_no_transmission -eq 0 ];then
-	lava-test-case can1_xfer_tx_range_end --result fail --measurement $b --units bit/s
+	lava-test-case can1_xfer_tx_range_end --result skip --measurement $b --units bit/s
 	echo "All bitrates in this interval provide frames transmission, the last bitrate not found in this range"
 	ip link set can0 down
 	ip link set can1 down
