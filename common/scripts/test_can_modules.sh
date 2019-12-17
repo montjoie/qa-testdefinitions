@@ -1,6 +1,7 @@
 #!/bin/sh
 
 RCAR_CAN=0
+CAN_BCM=1
 
 if [ ! -e /sys/class/net/can1 ];then
 	lava-test-case show_can_modules --result skip
@@ -44,6 +45,13 @@ modprobe_module() {
 
 remove_module can_raw
 
+# handle "rmmod: ERROR: Module can is in use by: can_bcm"
+lsmod | grep -q can_bcm
+if [ $? -eq 0 ];then
+	CAN_BCM=1
+	remove_module can_bcm
+fi
+
 remove_module can
 
 remove_module c_can_platform
@@ -82,6 +90,10 @@ modprobe_module can_dev
 
 if [ $RCAR_CAN -eq 1 ];then
 	modprobe_module rcar_can
+fi
+
+if [ $CAN_BCM -eq 1 ];then
+	modprobe_module can_bcm
 fi
 
 #Make sure always that the can interface is down before
