@@ -1,7 +1,7 @@
 #!/bin/sh
 
 RCAR_CAN=0
-CAN_BCM=1
+CAN_BCM=0
 
 if [ ! -e /sys/class/net/can1 ];then
 	lava-test-case show_can_modules --result skip

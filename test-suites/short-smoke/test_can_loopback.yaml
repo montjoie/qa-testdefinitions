@@ -12,6 +12,6 @@ run:
         - lava-test-set start test_can_loopback_mode
         - ./common/scripts/test_can_loopback_mode.sh
         - lava-test-set stop
-        - lava-test-set start test_can_modules
-        - ./common/scripts/test_can_modules.sh
-        - lava-test-set stop
+        #- lava-test-set start test_can_modules
+        #- ./common/scripts/test_can_modules.sh
+        #- lava-test-set stop
