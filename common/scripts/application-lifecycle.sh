@@ -30,6 +30,7 @@ fi
 
 do_afm_util()
 {
+set -x
 	if [ $SERVICE_USER -eq 1 -o $APPLICATION_USER -eq 1 ];then
 		su - $AGLDRIVER -c "afm-util $*"
 	else
@@ -38,10 +39,12 @@ do_afm_util()
 	return $?
 }
 
-wget -q $BASEURL -O index.html
-if [ $? -ne 0 ];then
-	echo "ERROR: Cannot wget $BASEURL"
-	exit 1
+if [ ! -f index.html ] ; then
+	wget -q $BASEURL -O index.html
+	if [ $? -ne 0 ];then
+	    echo "ERROR: Cannot wget $BASEURL"
+		exit 1
+	fi
 fi
 
 grep -o '[a-z-]*.wgt' index.html | sort | uniq |
@@ -52,10 +55,13 @@ do
 	SERVICE_USER=0
 	APPLICATION_USER=0
 	echo "DEBUG: fetch $wgtfile"
-	wget -q $BASEURL/$wgtfile
-	if [ $? -ne 0 ];then
-		echo "ERROR: wget from $BASEURL/$wgtfile"
-		continue
+
+	if [ ! -f $wgtfile ] ; then
+		wget -q $BASEURL/$wgtfile
+		if [ $? -ne 0 ];then
+			echo "ERROR: wget from $BASEURL/$wgtfile"
+			continue
+		fi
 	fi
 
 	echo "DEBUG: analyse wgt file"
@@ -108,16 +114,16 @@ do
 	if [ ! -z "$NAMEID" ];then
 		echo "DEBUG: $WGTNAME already installed as $NAMEID"
 		# need to kill then deinstall
-		afm-util ps --all | grep -q $WGTNAME
+		do_afm_util ps --all | grep -q $WGTNAME
 		if [ $? -eq 0 ];then
 			echo "DEBUG: kill $WGTNAME"
-			afm-util kill $WGTNAME
+			do_afm_util kill $WGTNAME
 			if [ $? -ne 0 ];then
 				echo "ERROR: afm-util kill"
-				lava-test-case afm-util-pre-kill-$WGTNAME --result fail
-				continue
-			else
-				lava-test-case afm-util-pre-kill-$WGTNAME --result pass
+				#lava-test-case afm-util-pre-kill-$WGTNAME --result fail
+				#continue
+			#else
+			#	lava-test-case afm-util-pre-kill-$WGTNAME --result pass
 			fi
 		else
 			echo "DEBUG: no need to kill $WGTNAME"
@@ -127,8 +133,9 @@ do
 		afm-util remove $NAMEID
 		if [ $? -ne 0 ];then
 			echo "ERROR: afm-util remove"
-			lava-test-case afm-util-remove-$WGTNAME --result fail
-			continue
+			#lava-test-case afm-util-remove-$WGTNAME --result fail
+			journalctl -b | tail -40
+			#continue
 		else
 			lava-test-case afm-util-remove-$WGTNAME --result pass
 		fi
