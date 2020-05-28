@@ -104,7 +104,7 @@ do
 	fi
 
 	echo "DEBUG: check presence of $WGTNAME"
-	NAMEID=$(grep id\\\":\\\"${WGTNAME}@ $LIST | cut -d\" -f4 | cut -d\\ -f1)
+	NAMEID=$(grep id\\\":\\\"${WGTNAME} $LIST | cut -d\" -f4 | cut -d\\ -f1)
 	if [ ! -z "$NAMEID" ];then
 		echo "DEBUG: $WGTNAME already installed as $NAMEID"
 		# need to kill then deinstall
@@ -148,7 +148,7 @@ do
 		lava-test-case afm-util-install-$WGTNAME --result pass
 	fi
 	# message is like \"added\":\"mediaplayer@0.1\"
-	NAMEID=$(grep d\\\":\\\"${WGTNAME}@ $OUT | cut -d\" -f4 | cut -d\\ -f1)
+	NAMEID=$(grep d\\\":\\\"${WGTNAME} $OUT | cut -d\" -f4 | cut -d\\ -f1)
 	if [ -z "$NAMEID" ];then
 		echo "ERROR: Cannot get nameid"
 		continue
