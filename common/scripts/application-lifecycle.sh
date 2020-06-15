@@ -222,6 +222,23 @@ do
 	fi
 	# TODO, compare RID with the list in $PSLIST"
 	RID="$(cat rid)"
+	if [ "$RID" == 'null' ];then
+		sleep 20
+		echo "DEBUG: retry start $NAMEID"
+		do_afm_util start $NAMEID > "rid"
+		if [ $? -ne 0 ];then
+			echo "ERROR: afm-util start"
+			lava-test-case afm-util-start-$WGTNAME --result fail
+			continue
+		fi
+		RID="$(cat rid)"
+	fi
+
+	if [ "$RID" == 'null' ];then
+		echo "ERROR: RID is null, service fail to start"
+		lava-test-case afm-util-status-$WGTNAME --result fail
+		continue
+	fi
 
 	echo "DEBUG: status $NAMEID ($RID)"
 	do_afm_util status $RID
@@ -244,12 +261,27 @@ do
 	fi
 
 	echo "DEBUG: start2 $NAMEID"
-	do_afm_util start $NAMEID
+	do_afm_util start $NAMEID > rid
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start2"
 		lava-test-case afm-util-start2-$WGTNAME --result fail
 		continue
 	else
 		lava-test-case afm-util-start2-$WGTNAME --result pass
+	fi
+	RID="$(cat rid)"
+	if [ "$RID" == 'null' ];then
+		echo "ERROR: RID is null"
+		continue
+	fi
+	sleep 120
+	echo "DEBUG: status2 $NAMEID ($RID)"
+	do_afm_util status $RID
+	if [ $? -ne 0 ];then
+		echo "ERROR: afm-util status2"
+		lava-test-case afm-util-status2-$WGTNAME --result fail
+		continue
+	else
+		lava-test-case afm-util-status2-$WGTNAME --result pass
 	fi
 done
