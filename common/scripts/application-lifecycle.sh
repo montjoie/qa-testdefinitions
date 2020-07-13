@@ -50,7 +50,8 @@ fi
 grep -o '[a-z-]*.wgt' index.html | sort | uniq |
 while read wgtfile
 do
-	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,')
+	# remove extension and the debug state
+	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,' | sed 's,-debug$,,')
 	SERVICE_PLATFORM=0
 	SERVICE_USER=0
 	APPLICATION_USER=0
@@ -110,7 +111,7 @@ do
 	fi
 
 	echo "DEBUG: check presence of $WGTNAME"
-	NAMEID=$(grep id\\\":\\\"${WGTNAME} $LIST | cut -d\" -f4 | cut -d\\ -f1)
+	NAMEID=$(grep id\\\":\\\"${WGTNAME}\" $LIST | cut -d\" -f4 | cut -d\\ -f1)
 	if [ ! -z "$NAMEID" ];then
 		echo "DEBUG: $WGTNAME already installed as $NAMEID"
 		# need to kill then deinstall
@@ -155,9 +156,12 @@ do
 		lava-test-case afm-util-install-$WGTNAME --result pass
 	fi
 	# message is like \"added\":\"mediaplayer@0.1\"
-	NAMEID=$(grep d\\\":\\\"${WGTNAME} $OUT | cut -d\" -f4 | cut -d\\ -f1)
+	NAMEID=$(grep d\\\":\\\"${WGTNAME}\" $OUT | cut -d\" -f4 | cut -d\\ -f1)
 	if [ -z "$NAMEID" ];then
 		echo "ERROR: Cannot get nameid"
+		echo "DEBUG: ========== DUMPING output =========="
+		cat $OUT
+		echo "DEBUG: ========== END DUMP =========="
 		continue
 	fi
 	echo "DEBUG: $WGTNAME is installed as $NAMEID"
