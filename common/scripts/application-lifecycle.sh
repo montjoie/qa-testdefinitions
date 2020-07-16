@@ -194,9 +194,9 @@ do
 	fi
 
 	echo "DEBUG: check if we see the package with systemctl list-units (before start)"
-	systemctl list-units --full | grep "afm.*$WGTNAME"
+	systemctl list-units --full | grep "afm.*$WGTNAME--"
 	echo "DEBUG: check if we see the package with systemctl -a (before start)"
-	systemctl -a |grep "afm.*$WGTNAME"
+	systemctl -a |grep "afm.*$WGTNAME--"
 
 	echo "DEBUG: start $NAMEID"
 	do_afm_util start $NAMEID > "rid"
@@ -209,9 +209,9 @@ do
 	fi
 
 	echo "DEBUG: check if we see the package with systemctl list-units (after start)"
-	systemctl list-units --full | grep "afm.*$WGTNAME"
+	systemctl list-units --full | grep "afm.*$WGTNAME--"
 	echo "DEBUG: check if we see the package with systemctl -a (after start)"
-	systemctl -a |grep "afm.*$WGTNAME"
+	systemctl -a |grep "afm.*$WGTNAME--"
 
 	echo "DEBUG: Get RID for $NAMEID"
 	PSLIST="pslist"
