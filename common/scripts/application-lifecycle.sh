@@ -64,9 +64,12 @@ do
 			continue
 		fi
 	fi
+	CURDIR="$(pwd)"
+	ZIPOUT="$(mktemp -d)"
+	cd $ZIPOUT
 
 	echo "DEBUG: analyse wgt file"
-	unzip $wgtfile
+	unzip $CURDIR/$wgtfile
 	if [ $? -ne 0 ];then
 		# TODO Do not fail yet, busybox unzip seems to "fail with success" when checking CRC
 		echo "ERROR: cannot unzip $wgtfile"
@@ -96,6 +99,9 @@ do
 	else
 		echo "DEBUG: fail to unzip"
 	fi
+
+	cd $CURDIR
+	rm -r $ZIPOUT
 
 	echo "DEBUG: list current pkgs"
 	# TODO mktemp
