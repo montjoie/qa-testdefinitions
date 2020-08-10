@@ -209,6 +209,7 @@ do
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start"
 		lava-test-case afm-util-start-$WGTNAME --result fail
+		journalctl -an 200
 		continue
 	else
 		lava-test-case afm-util-start-$WGTNAME --result pass
@@ -275,6 +276,7 @@ do
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start2"
 		lava-test-case afm-util-start2-$WGTNAME --result fail
+		journalctl -an 200
 		continue
 	else
 		lava-test-case afm-util-start2-$WGTNAME --result pass
