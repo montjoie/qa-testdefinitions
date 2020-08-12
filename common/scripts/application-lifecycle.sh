@@ -51,7 +51,7 @@ grep -o '[a-z-]*.wgt' index.html | sort | uniq |
 while read wgtfile
 do
 	# remove extension and the debug state
-	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,' | sed 's,-debug$,,')
+	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,' | sed 's,-debug$,,' | sed 's,-test$,,' | sed 's,-coverage$,,')
 	SERVICE_PLATFORM=0
 	SERVICE_USER=0
 	APPLICATION_USER=0
