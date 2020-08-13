@@ -39,6 +39,21 @@ set -x
 	return $?
 }
 
+do_afm_test()
+{
+	set -x
+	if [ $SERVICE_USER -eq 1 -o $APPLICATION_USER -eq 1 ];then
+		su - $AGLDRIVER -c "afm-test -l $*"
+	else
+		afm-test -l $*
+	fi
+	return $?
+}
+
+# work in tmp folder to allow different users to access files (smack)
+TOPDIR=$(mktemp -d)
+cd $TOPDIR
+
 if [ ! -f index.html ] ; then
 	wget -q $BASEURL -O index.html
 	if [ $? -ne 0 ];then
@@ -47,14 +62,11 @@ if [ ! -f index.html ] ; then
 	fi
 fi
 
+# first download all files
 grep -o '[a-z-]*.wgt' index.html | sort | uniq |
 while read wgtfile
 do
 	# remove extension and the debug state
-	WGTNAME=$(echo $wgtfile | sed 's,.wgt$,,' | sed 's,-debug$,,' | sed 's,-test$,,' | sed 's,-coverage$,,')
-	SERVICE_PLATFORM=0
-	SERVICE_USER=0
-	APPLICATION_USER=0
 	echo "DEBUG: fetch $wgtfile"
 
 	if [ ! -f $wgtfile ] ; then
@@ -64,6 +76,18 @@ do
 			continue
 		fi
 	fi
+	# do adapt security
+	chmod -R a+rwx ${TOPDIR}
+	chsmack -a "*" ${TOPDIR}/*
+done
+
+inspect_wgt() {
+	wgtfile=$1
+
+	export SERVICE_PLATFORM=0
+	export SERVICE_USER=0
+	export APPLICATION_USER=0
+
 	CURDIR="$(pwd)"
 	ZIPOUT="$(mktemp -d)"
 	cd $ZIPOUT
@@ -87,13 +111,13 @@ do
 		    # we are a service, now determine the scope ...
 		    grep "urn:AGL:permission::partner:scope-platform" config.xml
 		    if [ $? -eq 0 ];then
-			SERVICE_PLATFORM=1
+			export SERVICE_PLATFORM=1
 		    else
-			SERVICE_USER=1
+			export SERVICE_USER=1
 		    fi
 		else
 		    # we are an application
-		    APPLICATION_USER=1
+		    export APPLICATION_USER=1
 		    # no other type known (yet)
 		fi
 	else
@@ -102,6 +126,36 @@ do
 
 	cd $CURDIR
 	rm -r $ZIPOUT
+}
+
+# check if WGTNAME is running
+check_service_running() {
+	WGTNAME=$1
+	RUNNING=0
+
+	echo "DEBUG: check_service_running with systemctl list-units -full"
+	systemctl list-units --full | grep "afm.*$WGTNAME--"
+	if [ $? -eq 0 ];then
+		RUNNING=1
+	fi
+	echo "DEBUG: check_service_running with systemctl -a"
+	systemctl -a |grep "afm.*$WGTNAME--"
+	if [ $? -eq 0 ];then
+		if [ $RUNNING -eq 0 ];then
+			echo "ERROR: inconsistent results"
+		fi
+		RUNNING=1
+	fi
+	return $RUNNING
+}
+
+do_release_test() {
+	WGTNAME=$1
+	wgtfile=$2
+	# we need the full name (with -test, -debug etc..) for LAVA test case
+	WGTNAMEF=$(echo $2 | sed 's,.wgt,,')
+
+	echo "INFO: do_release_test $WGTNAME $wgtfile"
 
 	echo "DEBUG: list current pkgs"
 	# TODO mktemp
@@ -140,11 +194,11 @@ do
 		afm-util remove $NAMEID
 		if [ $? -ne 0 ];then
 			echo "ERROR: afm-util remove"
-			#lava-test-case afm-util-remove-$WGTNAME --result fail
+			#lava-test-case afm-util-remove-$WGTNAMEF --result fail
 			journalctl -b | tail -40
 			#continue
 		else
-			lava-test-case afm-util-remove-$WGTNAME --result pass
+			lava-test-case afm-util-remove-$WGTNAMEF --result pass
 		fi
 	else
 		echo "DEBUG: $WGTNAME not installed"
@@ -156,10 +210,10 @@ do
 	afm-util install $wgtfile > $OUT
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util install"
-		lava-test-case afm-util-install-$WGTNAME --result fail
+		lava-test-case afm-util-install-$WGTNAMEF --result fail
 		continue
 	else
-		lava-test-case afm-util-install-$WGTNAME --result pass
+		lava-test-case afm-util-install-$WGTNAMEF --result pass
 	fi
 	# message is like \"added\":\"mediaplayer@0.1\"
 	NAMEID=$(grep d\\\":\\\"${WGTNAME}\" $OUT | cut -d\" -f4 | cut -d\\ -f1)
@@ -194,9 +248,9 @@ do
 	do_afm_util info $NAMEID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util info"
-		lava-test-case afm-util-info-$WGTNAME --result fail
+		lava-test-case afm-util-info-$WGTNAMEF --result fail
 	else
-		lava-test-case afm-util-info-$WGTNAME --result pass
+		lava-test-case afm-util-info-$WGTNAMEF --result pass
 	fi
 
 	echo "DEBUG: check if we see the package with systemctl list-units (before start)"
@@ -208,28 +262,25 @@ do
 	do_afm_util start $NAMEID > "rid"
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start"
-		lava-test-case afm-util-start-$WGTNAME --result fail
+		lava-test-case afm-util-start-$WGTNAMEF --result fail
 		journalctl -an 200
 		continue
 	else
-		lava-test-case afm-util-start-$WGTNAME --result pass
+		lava-test-case afm-util-start-$WGTNAMEF --result pass
 	fi
 
-	echo "DEBUG: check if we see the package with systemctl list-units (after start)"
-	systemctl list-units --full | grep "afm.*$WGTNAME--"
-	echo "DEBUG: check if we see the package with systemctl -a (after start)"
-	systemctl -a |grep "afm.*$WGTNAME--"
+	check_service_running $WGTNAME
 
 	echo "DEBUG: Get RID for $NAMEID"
 	PSLIST="pslist"
 	afm-util ps --all > $PSLIST
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util ps"
-		lava-test-case afm-util-ps-$WGTNAME --result fail
+		lava-test-case afm-util-ps-$WGTNAMEF --result fail
 		continue
 	else
 		cat $PSLIST
-		lava-test-case afm-util-ps-$WGTNAME --result pass
+		lava-test-case afm-util-ps-$WGTNAMEF --result pass
 	fi
 	# TODO, compare RID with the list in $PSLIST"
 	RID="$(cat rid)"
@@ -239,7 +290,7 @@ do
 		do_afm_util start $NAMEID > "rid"
 		if [ $? -ne 0 ];then
 			echo "ERROR: afm-util start"
-			lava-test-case afm-util-start-$WGTNAME --result fail
+			lava-test-case afm-util-start-$WGTNAMEF --result fail
 			continue
 		fi
 		RID="$(cat rid)"
@@ -247,7 +298,7 @@ do
 
 	if [ "$RID" == 'null' ];then
 		echo "ERROR: RID is null, service fail to start"
-		lava-test-case afm-util-status-$WGTNAME --result fail
+		lava-test-case afm-util-status-$WGTNAMEF --result fail
 		continue
 	fi
 
@@ -255,45 +306,84 @@ do
 	do_afm_util status $RID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util status"
-		lava-test-case afm-util-status-$WGTNAME --result fail
+		lava-test-case afm-util-status-$WGTNAMEF --result fail
 		continue
 	else
-		lava-test-case afm-util-status-$WGTNAME --result pass
+		lava-test-case afm-util-status-$WGTNAMEF --result pass
 	fi
 
 	echo "DEBUG: kill $NAMEID ($RID)"
 	do_afm_util kill $NAMEID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util kill"
-		lava-test-case afm-util-kill-$WGTNAME --result fail
+		lava-test-case afm-util-kill-$WGTNAMEF --result fail
 		continue
 	else
-		lava-test-case afm-util-kill-$WGTNAME --result pass
+		lava-test-case afm-util-kill-$WGTNAMEF --result pass
 	fi
 
 	echo "DEBUG: start2 $NAMEID"
 	do_afm_util start $NAMEID > rid
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util start2"
-		lava-test-case afm-util-start2-$WGTNAME --result fail
+		lava-test-case afm-util-start2-$WGTNAMEF --result fail
 		journalctl -an 200
 		continue
 	else
-		lava-test-case afm-util-start2-$WGTNAME --result pass
+		lava-test-case afm-util-start2-$WGTNAMEF --result pass
 	fi
 	RID="$(cat rid)"
 	if [ "$RID" == 'null' ];then
 		echo "ERROR: RID is null"
 		continue
 	fi
-	sleep 120
+	sleep 10
 	echo "DEBUG: status2 $NAMEID ($RID)"
 	do_afm_util status $RID
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util status2"
-		lava-test-case afm-util-status2-$WGTNAME --result fail
+		lava-test-case afm-util-status2-$WGTNAMEF --result fail
 		continue
 	else
-		lava-test-case afm-util-status2-$WGTNAME --result pass
+		lava-test-case afm-util-status2-$WGTNAMEF --result pass
+	fi
+}
+
+WGTNAMES=$(grep -o '[a-z-]*.wgt' index.html | sed 's,.wgt$,,' | sed 's,-debug$,,' | sed 's,-test$,,' | sed 's,-coverage$,,' | sort | uniq)
+for WGTNAME in $WGTNAMES
+do
+	if [ -e $WGTNAME.wgt ];then
+		inspect_wgt $WGTNAME.wgt
+		do_release_test $WGTNAME $WGTNAME.wgt
+	else
+		echo "WARN: cannot find $WGTNAME.wgt"
+	fi
+	if [ -e $WGTNAME-test.wgt ];then
+		# wgt-test do not have the same permissions in the config.xml as the parent wgt
+		# so keep the value from last run
+		#inspect_wgt $WGTNAME-test.wgt
+		check_service_running $WGTNAME
+		if [ $? -eq 1 ];then
+			do_afm_test $TOPDIR/$WGTNAME-test.wgt
+			if [ $? -eq 0 ];then
+				lava-test-case run-test-$WGTNAME --result pass
+			else
+				lava-test-case run-test-$WGTNAME --result fail
+			fi
+		else
+			echo "DEBUG: $WGTNAME is not running, skipping test"
+			lava-test-case run-test-$WGTNAME --result skip
+		fi
+	else
+		echo "WARN: cannot find $WGTNAME.wgt"
+	fi
+	if [ -e $WGTNAME-debug.wgt ];then
+		inspect_wgt $WGTNAME-debug.wgt
+		do_release_test $WGTNAME $WGTNAME-debug.wgt
+	fi
+	if [ -e $WGTNAME-coverage.wgt ];then
+		inspect_wgt $WGTNAME-coverage.wgt
+		echo "DEBUG: coverage not handled yet"
 	fi
 done
+
