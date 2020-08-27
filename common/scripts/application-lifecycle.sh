@@ -83,6 +83,7 @@ done
 
 inspect_wgt() {
 	wgtfile=$1
+	WGTNAME=$2
 
 	export SERVICE_PLATFORM=0
 	export SERVICE_USER=0
@@ -119,6 +120,15 @@ inspect_wgt() {
 		    # we are an application
 		    export APPLICATION_USER=1
 		    # no other type known (yet)
+		fi
+		# the file naming convention is servicename.wgt
+		# but some didnt respect it
+		export WGTSERVICENAME=$(grep '<name>' config.xml | cut -d'>' -f2 | cut -d'<' -f1)
+		if [ -z "$WGTSERVICENAME" ];then
+			echo "WARN: failed to find name in config.xml, fallback to filename"
+			export WGTSERVICENAME="$WGTNAME"
+		else
+			echo "DEBUG: detected service name as $WGTSERVICENAME"
 		fi
 	else
 		echo "DEBUG: fail to unzip"
@@ -171,7 +181,7 @@ do_release_test() {
 	fi
 
 	echo "DEBUG: check presence of $WGTNAME"
-	NAMEID=$(grep id\\\":\\\"${WGTNAME}\" $LIST | cut -d\" -f4 | cut -d\\ -f1)
+	NAMEID=$(grep id\\\":\\\"${WGTSERVICENAME}\" $LIST | cut -d\" -f4 | cut -d\\ -f1)
 	if [ ! -z "$NAMEID" ];then
 		echo "DEBUG: $WGTNAME already installed as $NAMEID"
 		# need to kill then deinstall
@@ -216,7 +226,7 @@ do_release_test() {
 		lava-test-case afm-util-install-$WGTNAMEF --result pass
 	fi
 	# message is like \"added\":\"mediaplayer@0.1\"
-	NAMEID=$(grep d\\\":\\\"${WGTNAME}\" $OUT | cut -d\" -f4 | cut -d\\ -f1)
+	NAMEID=$(grep d\\\":\\\"${WGTSERVICENAME}\" $OUT | cut -d\" -f4 | cut -d\\ -f1)
 	if [ -z "$NAMEID" ];then
 		echo "ERROR: Cannot get nameid"
 		echo "DEBUG: ========== DUMPING output =========="
@@ -353,7 +363,7 @@ WGTNAMES=$(grep -o '[a-z-]*.wgt' index.html | sed 's,.wgt$,,' | sed 's,-debug$,,
 for WGTNAME in $WGTNAMES
 do
 	if [ -e $WGTNAME.wgt ];then
-		inspect_wgt $WGTNAME.wgt
+		inspect_wgt $WGTNAME.wgt $WGTNAME
 		do_release_test $WGTNAME $WGTNAME.wgt
 	else
 		echo "WARN: cannot find $WGTNAME.wgt"
@@ -378,11 +388,11 @@ do
 		echo "WARN: cannot find $WGTNAME.wgt"
 	fi
 	if [ -e $WGTNAME-debug.wgt ];then
-		inspect_wgt $WGTNAME-debug.wgt
+		inspect_wgt $WGTNAME-debug.wgt $WGTNAME
 		do_release_test $WGTNAME $WGTNAME-debug.wgt
 	fi
 	if [ -e $WGTNAME-coverage.wgt ];then
-		inspect_wgt $WGTNAME-coverage.wgt
+		inspect_wgt $WGTNAME-coverage.wgt $WGTNAME
 		echo "DEBUG: coverage not handled yet"
 	fi
 done
