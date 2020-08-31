@@ -130,6 +130,19 @@ inspect_wgt() {
 		else
 			echo "DEBUG: detected service name as $WGTSERVICENAME"
 		fi
+		# TEMP workaround for creating path to coverage files
+		find -type f > pathlist
+		while read fpath
+		do
+			echo "DEBUG: Handle $fpath"
+			strings $fpath |grep '.gcda' > gcovlist
+			while read gcovpath
+			do
+				echo "DEBUG: $gcovpath"
+				mkdir -pv $(dirname $gcovpath)
+				chown -Rv $AGLDRIVER /w/
+			done < gcovlist
+		done < pathlist
 	else
 		echo "DEBUG: fail to unzip"
 	fi
@@ -217,7 +230,7 @@ do_release_test() {
 
 	echo "DEBUG: install $wgtfile"
 	OUT="out"
-	afm-util install $wgtfile > $OUT
+	afm-util install $TOPDIR/$wgtfile > $OUT
 	if [ $? -ne 0 ];then
 		echo "ERROR: afm-util install"
 		lava-test-case afm-util-install-$WGTNAMEF --result fail
@@ -357,6 +370,13 @@ do_release_test() {
 	else
 		lava-test-case afm-util-status2-$WGTNAMEF --result pass
 	fi
+	echo "================================================================================="
+	echo "================================================================================="
+	echo "================================================================================="
+	echo "================================================================================="
+	echo "================================================================================="
+	echo "================================================================================="
+	echo "================================================================================="
 }
 
 WGTNAMES=$(grep -o '[a-z-]*.wgt' index.html | sed 's,.wgt$,,' | sed 's,-debug$,,' | sed 's,-test$,,' | sed 's,-coverage$,,' | sort | uniq)
@@ -393,7 +413,26 @@ do
 	fi
 	if [ -e $WGTNAME-coverage.wgt ];then
 		inspect_wgt $WGTNAME-coverage.wgt $WGTNAME
-		echo "DEBUG: coverage not handled yet"
+		do_release_test $WGTNAME $WGTNAME-coverage.wgt
+		check_service_running $WGTNAME
+		if [ $? -eq 1 ];then
+			afm-util install $TOPDIR/$WGTNAME-test.wgt
+			do_afm_test $TOPDIR/$WGTNAME-test.wgt
+			if [ $? -eq 0 ];then
+				lava-test-case run-test-$WGTNAME --result pass
+			else
+				lava-test-case run-test-$WGTNAME --result fail
+			fi
+			find / -name '*gcda' |
+			while read gcdapath
+			do
+				echo "FOUND: $gcdapath"
+				gcov $gcdapath
+			done
+		else
+			echo "DEBUG: $WGTNAME is not running, skipping test"
+			lava-test-case run-test-$WGTNAME --result skip
+		fi
 	fi
 done
 
