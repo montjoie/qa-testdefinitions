@@ -393,7 +393,20 @@ do
 	fi
 	if [ -e $WGTNAME-coverage.wgt ];then
 		inspect_wgt $WGTNAME-coverage.wgt $WGTNAME
-		echo "DEBUG: coverage not handled yet"
+		do_release_test $WGTNAME $WGTNAME-coverage.wgt
+		check_service_running $WGTNAME
+		if [ $? -eq 1 ];then
+			afm-util install $TOPDIR/$WGTNAME-test.wgt
+			do_afm_test $TOPDIR/$WGTNAME-test.wgt
+			if [ $? -eq 0 ];then
+				lava-test-case run-test-$WGTNAME --result pass
+			else
+				lava-test-case run-test-$WGTNAME --result fail
+			fi
+		else
+			echo "DEBUG: $WGTNAME is not running, skipping test"
+			lava-test-case run-test-$WGTNAME --result skip
+		fi
 	fi
 done
 
