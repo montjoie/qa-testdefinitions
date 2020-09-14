@@ -1,0 +1,14 @@
+# These tests are applicable if the board to be used has at least one CAN interface.
+
+metadata:
+  name: pyagl_nohw_oneshot
+  format: "Lava-Test-Shell Test Definition 1.0"
+  description: "pyagl_nohw_oneshot"
+  version: 1.0
+
+run:
+  steps:
+        - echo "pyagl - no external hardware - oneshot"
+        - lava-test-set start pyagl-nohw-oneshot
+        - ./common/scripts/pyagl-nohw-lava.sh
+        - lava-test-set stop
