@@ -123,7 +123,7 @@ inspect_wgt() {
 		fi
 		# the file naming convention is servicename.wgt
 		# but some didnt respect it
-		export WGTSERVICENAME=$(grep 'id=.*' config.xml | cut -d= -f2 | cut -d'"' -f2)
+		export WGTSERVICENAME=$(grep 'id=.*' config.xml | sed 's,^.*id=,id=,' | cut -d= -f2 | cut -d'"' -f2)
 		if [ -z "$WGTSERVICENAME" ];then
 			echo "WARN: failed to find name in config.xml, fallback to filename"
 			export WGTSERVICENAME="$WGTNAME"
