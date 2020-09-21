@@ -225,14 +225,20 @@ do_release_test() {
 	else
 		lava-test-case afm-util-install-$WGTNAMEF --result pass
 	fi
+
+	grep -q 'added' $OUT
+	NAMEID=$(grep added $OUT | cut -d'"' -f4)
+	echo "DEBUG: got $NAMEID from out"
 	# message is like \"added\":\"mediaplayer@0.1\"
 	NAMEID=$(grep d\\\":\\\"${WGTSERVICENAME}\" $OUT | cut -d\" -f4 | cut -d\\ -f1)
 	if [ -z "$NAMEID" ];then
-		echo "ERROR: Cannot get nameid"
+		echo "WARN: Cannot get nameid"
 		echo "DEBUG: ========== DUMPING output =========="
 		cat $OUT
 		echo "DEBUG: ========== END DUMP =========="
-		continue
+		# verify installation worked
+		NAMEID=$(grep added $OUT | cut -d'"' -f4)
+		echo "DEBUG: got $NAMEID from out"
 	fi
 	echo "DEBUG: $WGTNAME is installed as $NAMEID"
 
