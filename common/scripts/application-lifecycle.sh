@@ -180,6 +180,18 @@ do_release_test() {
 		continue
 	fi
 
+	# SPEC-3599 uninstall homescreen if testing homescreen-demo-ci
+	if [ "$WGTSERVICENAME" == 'native-app-qt' ];then
+		grep -q \"homescreen\" $LIST
+		if [ $? -eq 0 ];then
+			echo "INFO: Remove homescreen since we test homescreen-demo-ci"
+			afm-util kill 'homescreen'
+			afm-util remove 'homescreen'
+		else
+			echo "INFO: homescreen is not here"
+		fi
+	fi
+
 	echo "DEBUG: check presence of $WGTNAME"
 	NAMEID=$(grep id\\\":\\\"${WGTSERVICENAME}\" $LIST | cut -d\" -f4 | cut -d\\ -f1)
 	if [ ! -z "$NAMEID" ];then
