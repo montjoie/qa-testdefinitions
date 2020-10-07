@@ -365,31 +365,34 @@ do
 	if [ -e $WGTNAME.wgt ];then
 		inspect_wgt $WGTNAME.wgt $WGTNAME
 		do_release_test $WGTNAME $WGTNAME.wgt
+		pytest --show-capture=no --color=no -k "not hwrequired" /usr/lib/python?.?/site-packages/pyagl/tests/ -L
 	else
 		echo "WARN: cannot find $WGTNAME.wgt"
 	fi
-	if [ -e $WGTNAME-test.wgt ];then
-		# wgt-test do not have the same permissions in the config.xml as the parent wgt
-		# so keep the value from last run
-		#inspect_wgt $WGTNAME-test.wgt
-		check_service_running $WGTNAME
-		if [ $? -eq 1 ];then
-			do_afm_test $TOPDIR/$WGTNAME-test.wgt
-			if [ $? -eq 0 ];then
-				lava-test-case run-test-$WGTNAME --result pass
-			else
-				lava-test-case run-test-$WGTNAME --result fail
-			fi
-		else
-			echo "DEBUG: $WGTNAME is not running, skipping test"
-			lava-test-case run-test-$WGTNAME --result skip
-		fi
-	else
-		echo "WARN: cannot find $WGTNAME.wgt"
-	fi
+	# disabled due to SPEC-3608
+	#if [ -e $WGTNAME-test.wgt ];then
+	#	# wgt-test do not have the same permissions in the config.xml as the parent wgt
+	#	# so keep the value from last run
+	#	#inspect_wgt $WGTNAME-test.wgt
+	#	check_service_running $WGTNAME
+	#	if [ $? -eq 1 ];then
+	#		do_afm_test $TOPDIR/$WGTNAME-test.wgt
+	#		if [ $? -eq 0 ];then
+	#			lava-test-case run-test-$WGTNAME --result pass
+	#		else
+	#			lava-test-case run-test-$WGTNAME --result fail
+	#		fi
+	#	else
+	#		echo "DEBUG: $WGTNAME is not running, skipping test"
+	#		lava-test-case run-test-$WGTNAME --result skip
+	#	fi
+	#else
+	#	echo "WARN: cannot find $WGTNAME.wgt"
+	#fi
 	if [ -e $WGTNAME-debug.wgt ];then
 		inspect_wgt $WGTNAME-debug.wgt $WGTNAME
 		do_release_test $WGTNAME $WGTNAME-debug.wgt
+		pytest --color=no -k "not hwrequired" /usr/lib/python?.?/site-packages/pyagl/tests/
 	fi
 	if [ -e "$WGTNAME-coverage.wgt" ];then
 		gcovr-wrapper "$WGTNAME-coverage.wgt" > coverage.result
@@ -398,9 +401,9 @@ do
 		if [ $RET -eq 0 ];then
 			lava-test-case "run-test-$WGTNAME-coverage" --result pass
 			LINES_PERCENT=$(grep -o '^lines.*%' coverage.result | cut -d ' ' -f2 | cut -d% -f1)
-			lava-test-case "run-test-$WGTNAME-coverage-lines" --result pass --measurement "$LINES_PERCENT"
+			lava-test-case "run-test-$WGTNAME-coverage-percentage-lines" --result pass --measurement "$LINES_PERCENT"
 			BRANCHES_PERCENT=$(grep -o '^branches.*%' coverage.result | cut -d ' ' -f2 | cut -d% -f1)
-			lava-test-case "run-test-$WGTNAME-coverage-branches" --result pass --measurement "$BRANCHES_PERCENT"
+			lava-test-case "run-test-$WGTNAME-coverage-percentage-branches" --result pass --measurement "$BRANCHES_PERCENT"
 		else
 			lava-test-case "run-test-$WGTNAME-coverage" --result fail
 		fi
