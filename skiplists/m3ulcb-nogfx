@@ -1,1 +1,2 @@
 2_service-check.bluetooth.service
+1_pyagl-tests.can_write_wo_auth

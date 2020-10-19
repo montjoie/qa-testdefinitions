@@ -5,10 +5,10 @@ set -x
 export TERM=dumb
 export COLUMNS=1000
 
-AGLDRIVER=agl-driver
+export AGLDRIVER=agl-driver
 
 # for pyagl - unless redefined in a test
-AGL_AVAILABLE_INTERFACES="ethernet"
+export AGL_AVAILABLE_INTERFACES="ethernet"
 
 while [ $# -ge 1 ]
 do
