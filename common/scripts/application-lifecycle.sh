@@ -368,7 +368,7 @@ do
 	if [ -e $WGTNAME.wgt ];then
 		inspect_wgt $WGTNAME.wgt $WGTNAME
 		do_release_test $WGTNAME $WGTNAME.wgt
-		pytest --show-capture=no --color=no -k "not hwrequired" /usr/lib/python?.?/site-packages/pyagl/tests/ -L
+		pytest --show-capture=no --color=no -k "not hwrequired and not internet" /usr/lib/python?.?/site-packages/pyagl/tests/ -L
 	else
 		echo "WARN: cannot find $WGTNAME.wgt"
 	fi
