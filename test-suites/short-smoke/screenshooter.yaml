@@ -1,0 +1,9 @@
+metadata:
+  name: Screenshooter Test
+  format: "Lava-Test-Shell Test Definition 1.0"
+  description: "Take screenshoot and check it"
+  version: 1.0
+run:
+    steps:
+      - chmod +x ./common/scripts/agl-screenshot-test.sh
+      - ./common/scripts/agl-screenshot-test.sh ./reference-images/reference-image.png
