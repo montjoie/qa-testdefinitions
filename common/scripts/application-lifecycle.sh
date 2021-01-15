@@ -9,6 +9,7 @@ export AGLDRIVER=agl-driver
 
 # for pyagl - unless redefined in a test
 export AGL_AVAILABLE_INTERFACES="ethernet"
+export AGL_CAN_INTERFACE="vcan0"
 
 while [ $# -ge 1 ]
 do
