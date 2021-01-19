@@ -25,8 +25,6 @@ sleep 2
 # restart weston@display
 systemctl restart weston@display.service
 sleep 5
-afm-util stop homescreen
-afm-util start homescreen
 
 sleep 5
 if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
@@ -34,7 +32,7 @@ sleep 10
 fi
 if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
 cat /run/platform/display/compositor.log
-exit 127
+echo "CONTINUING ANYWAY !"
 fi
 
 
