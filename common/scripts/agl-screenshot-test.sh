@@ -24,13 +24,12 @@ sync
 sleep 2
 # restart weston@display
 systemctl restart weston@display.service
-sleep 5
+sleep 60
 
-sleep 5
-if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
-sleep 10
+if test ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+sleep 60
 fi
-if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+if test ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
 cat /run/platform/display/compositor.log
 echo "CONTINUING ANYWAY !"
 fi
