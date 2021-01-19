@@ -50,11 +50,16 @@ if [ "${REF_IMAGE_SHA1SUM}" == "${IMAGE_SHA1SUM}" ]; then
 else
 	echo "Screenshot does not match the reference image" 
 	FINALRET=127
+	for i in agl-screenshot-*.png ${REF_IMAGE} ; do
+		curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo ""
+	done
+	echo "#########################"
+	cat /run/platform/display/*.log
+	echo "#########################"
+	journalctl -b --no-pager -a 
+	echo "#########################"
 fi
 
-for i in agl-screenshot-*.png ${REF_IMAGE} ; do
-curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo ""
-done
 
 # cleanup
 sed -i '/activate-by-default=false/d' /etc/xdg/weston/weston.ini
