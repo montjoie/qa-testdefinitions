@@ -53,7 +53,7 @@ else
 fi
 
 for i in agl-screenshot-*.png ${REF_IMAGE} ; do
-curl --upload-file "$i" https://transfer.sh/$(basename "$i")
+curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo ""
 done
 
 # cleanup
