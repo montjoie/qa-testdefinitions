@@ -30,6 +30,7 @@ if ! grep -c 'Usable area:' /run/platform/display/compositor.log ; then
 sleep 5
 fi
 if ! grep -c 'Usable area:' /run/platform/display/compositor.log ; then
+cat /run/platform/display/compositor.log
 exit 127
 fi
 
