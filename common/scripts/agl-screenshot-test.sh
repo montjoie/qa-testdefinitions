@@ -25,7 +25,7 @@ sleep 2
 # restart weston@display
 systemctl restart weston@display.service
 
-AGL_SCREENSHOOTER=`whereis agl-screenshooter | awk -F ': ' '{print $2}'`
+AGL_SCREENSHOOTER=/usr/bin/agl-screenshooter
 
 if [ -z "$AGL_SCREENSHOOTER" ]; then
 	echo "Failed to find agl-screenshooter. Compositor too old?"
@@ -51,8 +51,10 @@ else
 	echo "Screenshot does not match the reference image" 
 	FINALRET=127
 fi
-cat agl-screenshot-*.png | nc 10.1.1.26 15555
-cat agl-screenshot-*.png | nc 192.168.66.1 15555
+
+for i in agl-screenshot-*.png ; do
+wget -t 1 -qO - --method=PUT --body-file="$i" --header="Content-Type: $(file -b --mime-type "$i")" "https://transfer.sh/$(basename "$i")" && echo
+done
 
 # cleanup
 sed -i '/activate-by-default=false/d' /etc/xdg/weston/weston.ini
