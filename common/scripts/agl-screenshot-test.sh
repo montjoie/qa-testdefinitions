@@ -51,7 +51,9 @@ else
 	echo "Screenshot does not match the reference image" 
 	FINALRET=127
 	for i in agl-screenshot-*.png ${REF_IMAGE} ; do
+		set +x
 		curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo ""
+		set -x
 	done
 	echo "#########################"
 	cat /run/platform/display/*.log
