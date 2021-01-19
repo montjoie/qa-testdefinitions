@@ -81,5 +81,6 @@ systemctl daemon-reload
 sync
 sleep 2
 systemctl restart weston@display.service
+sleep 5
 
 exit $FINALRET
