@@ -24,7 +24,7 @@ sync
 sleep 2
 # restart weston@display
 systemctl restart weston@display.service
-
+sleep 5
 AGL_SCREENSHOOTER=/usr/bin/agl-screenshooter
 
 if [ -z "$AGL_SCREENSHOOTER" ]; then
