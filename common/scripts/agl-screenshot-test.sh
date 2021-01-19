@@ -52,9 +52,8 @@ else
 	FINALRET=127
 fi
 
-for i in agl-screenshot-*.png ; do
-curl --help
-#wget -t 1 -qO - --method=PUT --body-file="$i" --header="Content-Type: $(file -b --mime-type "$i")" "https://transfer.sh/$(basename "$i")" && echo
+for i in agl-screenshot-*.png ${REF_IMAGE} ; do
+curl --upload-file "$i" https://transfer.sh/$(basename "$i")
 done
 
 # cleanup
