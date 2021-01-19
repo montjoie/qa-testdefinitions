@@ -53,7 +53,8 @@ else
 fi
 
 for i in agl-screenshot-*.png ; do
-wget -t 1 -qO - --method=PUT --body-file="$i" --header="Content-Type: $(file -b --mime-type "$i")" "https://transfer.sh/$(basename "$i")" && echo
+curl --help
+#wget -t 1 -qO - --method=PUT --body-file="$i" --header="Content-Type: $(file -b --mime-type "$i")" "https://transfer.sh/$(basename "$i")" && echo
 done
 
 # cleanup
