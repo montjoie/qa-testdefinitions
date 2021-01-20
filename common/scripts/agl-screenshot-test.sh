@@ -24,13 +24,19 @@ sync
 sleep 2
 # restart weston@display
 systemctl restart weston@display.service
+# e.g. qemu-system-arm takes loooong
 sleep 60
 
-if test ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+# e.g. qemu-system-arm takes loooong
 sleep 60
 fi
-if test ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+echo "Marker ('Usable area:') not found. Dumping log."
+echo "##################################"
 cat /run/platform/display/compositor.log
+echo "##################################"
+#exit 127
 echo "CONTINUING ANYWAY !"
 fi
 
@@ -60,9 +66,11 @@ if [ "${REF_IMAGE_SHA1SUM}" == "${IMAGE_SHA1SUM}" ]; then
 else
 	echo "Screenshot does not match the reference image" 
 	FINALRET=127
-	for i in agl-screenshot-*.png ${REF_IMAGE} ; do
+	for i in agl-screenshot-*.png ; do
 		set +x
-		curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo ""
+		echo "################################################################"
+		( curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo "" ) || true
+		echo "################################################################"
 		set -x
 	done
 	echo "#########################"
