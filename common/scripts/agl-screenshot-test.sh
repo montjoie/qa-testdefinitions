@@ -21,6 +21,7 @@ sed -i '/^\[core\]/a hide-cursor=true' /etc/xdg/weston/weston.ini
 # enable red/green/blue test screen
 echo 'HOMESCREEN_DEMO_CI=1' > /etc/afm/unit.env.d/screenshot
 sync
+systemctl daemon-reload
 sleep 2
 # restart weston@display
 systemctl restart weston@display.service
