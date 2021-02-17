@@ -1,0 +1,14 @@
+# These tests are applicable if the board to be used has at least one CAN interface.
+
+metadata:
+  name: pyagl_hw_oneshot
+  format: "Lava-Test-Shell Test Definition 1.0"
+  description: "pyagl_hw_oneshot"
+  version: 1.0
+
+run:
+  steps:
+        - echo "pyagl - hardware - oneshot"
+        - lava-test-set start pyagl-hw-oneshot
+        - ./common/scripts/pyagl-hwrequired-lava.sh
+        - lava-test-set stop
