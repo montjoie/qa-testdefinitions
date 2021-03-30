@@ -1,0 +1,10 @@
+metadata:
+  name: artiproxy Test
+  format: "Lava-Test-Shell Test Definition 1.0"
+  description: "test upload on artiproxy"
+  version: 1.0
+run:
+    steps:
+      - echo "Application Lifecycle Workflow Tests"
+      - chmod +x ./common/scripts/artiproxy-upload.sh
+      - ./common/scripts/artiproxy-upload.sh
