@@ -35,6 +35,12 @@ if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
 	sleep 60
 fi
 if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+# e.g. qemu-system-arm takes loooong
+        echo "Waiting for compositor to initialize (+120sec)."
+	sleep 120
+fi
+
+if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
 	echo "Marker ('Usable area:') not found. Dumping log."
 	echo "##################################"
 	cat /run/platform/display/compositor.log
