@@ -1,0 +1,8 @@
+5_pyagl-tests.audiomixer_set_unmute
+5_pyagl-tests.audiomixer_set_mute
+5_pyagl-tests.audiomixer_get_mute
+5_pyagl-tests.audiomixer_set_maxvolume
+5_pyagl-tests.audiomixer_set_volume0
+5_pyagl-tests.audiomixer_volume_verb
+5_pyagl-tests.audiomixer_list_controls
+lava.5_pyagl-tests
