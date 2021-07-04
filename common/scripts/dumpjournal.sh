@@ -19,6 +19,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+if [ -x ./artiproxy-upload.sh ];then
+	DUMP_FILE=/tmp/dump
+	SYSTEMD_COLORS=false journalctl -a --no-pager > $DUMP_FILE
+	./artiproxy-upload.sh $DUMP_FILE dumpjournal
+	# still dump to output if any error arise
+	if [ $? -eq 0 ];then
+		exit 0
+	fi
+else
+	echo "No upload, fallback to dump to console"
+fi
+
 SYSTEMD_COLORS=false journalctl -a --no-pager
 echo "dumpjournal: pass"
 exit 0
