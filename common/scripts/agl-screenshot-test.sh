@@ -67,6 +67,9 @@ fi
 #echo "Found agl-screenshoooter in $AGL_SCREENSHOOTER"
 rm -rf agl-screenshot-*.png
 
+# give it a bit more time to display
+sleep 30
+
 if $AGL_SCREENSHOOTER; then
 	echo "Screenshot taken"
 else
