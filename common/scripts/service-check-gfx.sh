@@ -19,8 +19,8 @@ while getopts ":b:d:" option; do
     esac
 done
 
-REQUIREDSOCKETS="dbus.socket security-manager.socket"
-REQUIREDSERVICES="afm-system-daemon.service connman.service ofono.service weston.service bluetooth.service"
+REQUIREDSOCKETS="dbus.socket"
+REQUIREDSERVICES="connman.service weston.service"
 
 ALL="${REQUIREDSOCKETS} ${REQUIREDSERVICES}"
 RESULT="unknown"
