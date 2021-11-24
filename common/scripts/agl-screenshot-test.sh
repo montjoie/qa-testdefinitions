@@ -1,6 +1,9 @@
 #!/bin/bash
 
-#set -x
+set -x
+
+XDG_RUNTIME_DIR=/run/user/200
+
 
 REF_IMAGE="$1"
 
@@ -19,39 +22,45 @@ sed -i '/^\[core\]/a activate-by-default=false' /etc/xdg/weston/weston.ini
 # setup homescreen env variable
 sed -i '/^\[core\]/a hide-cursor=true' /etc/xdg/weston/weston.ini
 # enable red/green/blue test screen
-echo 'HOMESCREEN_DEMO_CI=1' > /etc/afm/unit.env.d/screenshot
+echo 'HOMESCREEN_DEMO_CI=1' > /etc/default/homescreen
 sync
 systemctl daemon-reload
 sleep 2
+
+# create initial journal cursor file
+journalctl /usr/bin/agl-compositor --cursor-file=/tmp/agl-screenshot-cursor > /tmp/first-log 2>&1
+
 # restart weston@display
-systemctl restart weston@display.service
+systemctl restart weston.service
 # e.g. qemu-system-arm takes loooong
-sleep 60
-echo "Waiting for compositor to initialize (+60sec)."
+sleep 10
+echo "Waiting for compositor to initialize (+10sec)."
 
-if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
-# e.g. qemu-system-arm takes loooong
-        echo "Waiting for compositor to initialize (+60sec)."
+LOOP=20
+while test $LOOP -ge 1 ; do
+
+  ( mv /tmp/next-log /tmp/prev-log > /dev/null 2>&1 ) || true
+  journalctl /usr/bin/agl-compositor --cursor-file=/tmp/agl-screenshot-cursor > /tmp/next-log 2>&1
+  if ! grep -q 'Usable area:' /tmp/next-log ; then
+  # e.g. qemu-system-arm takes loooong
+        echo "Waiting for compositor to initialize (+60sec). Loop: $LOOP"
 	sleep 60
-fi
-if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
-        # e.g. qemu-system-arm takes loooong
-        echo "Waiting for compositor to initialize (+120sec)."
-        sleep 120
-fi
+	LOOP="$(($LOOP-1))"
+	continue
+  fi
+  break
+done
 
-# some take veeeeery long
-if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
-        # e.g. qemu-system-arm takes veeery loooong
-        echo "Waiting for compositor to initialize (+240sec)."
-        sleep 240
-fi
+#read aw
+
 
 # giving up now
-if ! grep -q 'Usable area:' /run/platform/display/compositor.log ; then
+if ! grep -q 'Usable area:' /tmp/next-log ; then
 	echo "Marker ('Usable area:') not found. Dumping log."
 	echo "##################################"
-	cat /run/platform/display/compositor.log
+	cat /tmp/first-log
+	cat /tmp/prev-log
+	cat /tmp/next-log
 	echo "##################################"
         exit 127
 	#echo "CONTINUING ANYWAY !"
@@ -68,13 +77,13 @@ fi
 rm -rf agl-screenshot-*.png
 
 # give it a bit more time to display
-sleep 30
+sleep 10
 
 if $AGL_SCREENSHOOTER; then
 	echo "Screenshot taken"
 else
 	echo "##################################"
-	cat /run/platform/display/compositor.log
+	journalctl -b /usr/bin/agl-compositor
 	echo "##################################"
 	exit 127
 fi
@@ -107,11 +116,11 @@ fi
 sed -i '/activate-by-default=false/d' /etc/xdg/weston/weston.ini
 sed -i '/hide-cursor=true/d' /etc/xdg/weston/weston.ini
 #rm -rf /etc/systemd/system/weston@.service.d
-rm -rf /etc/afm/unit.env.d/screenshot
+rm -rf /etc/default/homescreen
 systemctl daemon-reload
 sync
 sleep 2
-systemctl restart weston@display.service
+systemctl restart weston.service
 sleep 10
 
 exit $FINALRET
