@@ -77,13 +77,13 @@ fi
 rm -rf agl-screenshot-*.png
 
 # give it a bit more time to display
-sleep 10
+sleep 30
 
 if $AGL_SCREENSHOOTER; then
 	echo "Screenshot taken"
 else
 	echo "##################################"
-	journalctl -b /usr/bin/agl-compositor
+	journalctl --no-pager -a -b /usr/bin/agl-compositor
 	echo "##################################"
 	exit 127
 fi
