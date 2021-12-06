@@ -77,7 +77,7 @@ fi
 rm -rf agl-screenshot-*.png
 
 # give it a bit more time to display
-sleep 30
+sleep 60
 
 if $AGL_SCREENSHOOTER; then
 	echo "Screenshot taken"
