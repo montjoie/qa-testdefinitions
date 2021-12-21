@@ -2,7 +2,13 @@
 
 set -x
 
-XDG_RUNTIME_DIR=/run/user/200
+export TERM=dumb
+export COLUMNS=1000
+
+XDG_RUNTIME_DIR=/run/user/1001
+AGLDRIVER=agl-driver
+
+
 
 
 REF_IMAGE="$1"
@@ -31,7 +37,9 @@ sleep 2
 journalctl /usr/bin/agl-compositor --cursor-file=/tmp/agl-screenshot-cursor > /tmp/first-log 2>&1
 
 # restart weston@display
-systemctl restart weston.service
+#systemctl restart weston.service
+systemctl restart agl-session@agl-driver.service
+
 # e.g. qemu-system-arm takes loooong
 sleep 10
 echo "Waiting for compositor to initialize (+10sec)."
@@ -68,18 +76,26 @@ fi
 
 AGL_SCREENSHOOTER=/usr/bin/agl-screenshooter
 
+#su - $AGLDRIVER -c "..."
+do_screenshot()
+{
+	su - $AGLDRIVER -c "XDG_RUNTIME_DIR=/run/user/1001 $AGL_SCREENSHOOTER"
+	return $?
+}
+
+
 if [ -z "$AGL_SCREENSHOOTER" ]; then
 	echo "Failed to find agl-screenshooter. Compositor too old?"
 	exit 127
 fi
 
 #echo "Found agl-screenshoooter in $AGL_SCREENSHOOTER"
-rm -rf agl-screenshot-*.png
+rm -rf /home/agl-driver/agl-screenshot-*.png
 
 # give it a bit more time to display
-sleep 60
+#sleep 60
 
-if $AGL_SCREENSHOOTER; then
+if do_screenshot ; then
 	echo "Screenshot taken"
 else
 	echo "##################################"
@@ -89,7 +105,7 @@ else
 fi
 
 REF_IMAGE_SHA1SUM=`sha1sum ${REF_IMAGE} | awk -F ' ' '{print $1}'`
-IMAGE_SHA1SUM=`sha1sum agl-screenshot-*.png | awk -F ' ' '{print $1}'`
+IMAGE_SHA1SUM=`sha1sum /home/agl-driver/agl-screenshot-*.png | awk -F ' ' '{print $1}'`
 
 if [ "${REF_IMAGE_SHA1SUM}" == "${IMAGE_SHA1SUM}" ]; then
 	echo "Screenshot matches the reference image"
@@ -120,7 +136,8 @@ rm -rf /etc/default/homescreen
 systemctl daemon-reload
 sync
 sleep 2
-systemctl restart weston.service
+systemctl restart agl-session@agl-driver.service
+
 sleep 10
 
 exit $FINALRET
