@@ -30,7 +30,8 @@ sed -i '/^\[core\]/a hide-cursor=true' /etc/xdg/weston/weston.ini
 # enable red/green/blue test screen
 echo 'HOMESCREEN_DEMO_CI=1' > /etc/default/homescreen
 sync
-systemctl daemon-reload
+systemctl daemon-reload || true
+su - agl-driver -c 'export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1001/bus" ; systemctl --user daemon-reload' || true
 sleep 2
 
 # create initial journal cursor file
