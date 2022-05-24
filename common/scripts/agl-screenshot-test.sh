@@ -119,14 +119,12 @@ else
 	echo "Screenshot does not match the reference image"
 	FINALRET=127
 	for i in agl-screenshot-*.png ; do
-		#set +x
-		echo "################################################################"
-		( curl --upload-file "$i" https://transfer.sh/$(basename "$i") && echo "" ) || true
-		echo "################################################################"
-		#set -x
+		if [ -x ./artiproxy-upload.sh ];then
+			./artiproxy-upload.sh $i dumpjournal
+		fi
 	done
 	echo "#########################"
-	cat /run/platform/display/*.log
+	journalctl -t agl-compositor
 	echo "#########################"
 	journalctl -b --no-pager -a
 	echo "#########################"
