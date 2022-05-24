@@ -37,9 +37,13 @@ sleep 2
 # create initial journal cursor file
 journalctl /usr/bin/agl-compositor --cursor-file=/tmp/agl-screenshot-cursor > /tmp/first-log 2>&1
 
-# restart weston@display
-#systemctl restart weston.service
-systemctl restart agl-session@agl-driver.service
+# stop homescreen (shell) and launcher
+su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user stop homescreen'
+su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user stop launcher'
+# restart agl-compositor
+su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user restart agl-compositor'
+su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start homescreen'
+su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start launcher'
 
 # e.g. qemu-system-arm takes loooong
 sleep 10
