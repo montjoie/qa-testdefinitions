@@ -43,7 +43,6 @@ su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:
 # restart agl-compositor
 su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user restart agl-compositor'
 su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start homescreen'
-su $AGLDRIVER -c 'XDG_RUNTIME_DIR=/run/user/1001/ DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start launcher'
 
 # e.g. qemu-system-arm takes loooong
 sleep 10
