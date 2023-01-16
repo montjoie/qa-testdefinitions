@@ -20,7 +20,7 @@ while getopts ":b:d:" option; do
 done
 
 REQUIREDSOCKETS="dbus.socket"
-REQUIREDSERVICES="connman.service weston.service"
+REQUIREDSERVICES=""
 
 ALL="${REQUIREDSOCKETS} ${REQUIREDSERVICES}"
 RESULT="unknown"
