@@ -1,6 +1,0 @@
-weston.service
-2_service-check.bluetooth.service
-2_service-check.ofono.service
-lava.read-feedback
-1_pyagl-tests.can_write_wo_auth
-lava.5_screenshooter
