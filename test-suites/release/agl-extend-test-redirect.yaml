@@ -1,0 +1,18 @@
+metadata:
+    name: agl-extend-test
+    format: "Lava-Test-Shell Test Definition 1.0"
+    description: "Extend tests for agl release"
+    maintainer:
+        - duep.fnst@fujitsu.com
+    os:
+        - openembedded
+    scope:
+        - functional
+params:
+  DEVICE_TAGS: ""
+
+run:
+    steps:
+        - "cd common/scripts"
+        - "./agl-extend-test.sh > .log"
+        - "cat .log"
