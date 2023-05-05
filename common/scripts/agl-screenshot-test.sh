@@ -115,12 +115,15 @@ if [ "${REF_IMAGE_SHA1SUM}" == "${IMAGE_SHA1SUM}" ]; then
 	echo "Screenshot matches the reference image"
 	FINALRET=0
 else
+set -x
 	echo "Screenshot does not match the reference image"
 	FINALRET=127
 	for i in /home/agl-driver/agl-screenshot-*.png ; do
 		if [ -x ./artiproxy-upload.sh ];then
 			./artiproxy-upload.sh $i $(basename $i)
 		fi
+set +x
+
 	done
 	echo "#########################"
 	journalctl -t agl-compositor
