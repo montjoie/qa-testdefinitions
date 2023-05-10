@@ -80,10 +80,11 @@ fi
 
 AGL_SCREENSHOOTER=/usr/bin/agl-screenshooter
 
+
 #su - $AGLDRIVER -c "..."
 do_screenshot()
 {
-	su - $AGLDRIVER -c "XDG_RUNTIME_DIR=/run/user/1001 $AGL_SCREENSHOOTER"
+	su - $AGLDRIVER -c "XDG_RUNTIME_DIR=/run/user/1001 $AGL_SCREENSHOOTER -a"
 	return $?
 }
 
@@ -99,6 +100,8 @@ rm -rf /home/agl-driver/agl-screenshot-*.png
 # give it a bit more time to display
 #sleep 60
 
+su - $AGLDRIVER -c "XDG_RUNTIME_DIR=/run/user/1001 $AGL_SCREENSHOOTER -l"
+
 if do_screenshot ; then
 	echo "Screenshot taken"
 else
@@ -107,6 +110,8 @@ else
 	echo "##################################"
 	exit 127
 fi
+
+ls /home/agl-driver/agl-screenshot*
 
 REF_IMAGE_SHA1SUM=`sha1sum ${REF_IMAGE} | awk -F ' ' '{print $1}'`
 IMAGE_SHA1SUM=`sha1sum /home/agl-driver/agl-screenshot-*.png | awk -F ' ' '{print $1}'`
@@ -123,13 +128,13 @@ set -x
 			./artiproxy-upload.sh $i $(basename $i)
 		fi
 set +x
-
 	done
 	echo "#########################"
 	journalctl -t agl-compositor
 	echo "#########################"
 	journalctl -b --no-pager -a
 	echo "#########################"
+	exit 127
 fi
 
 
