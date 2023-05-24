@@ -125,6 +125,7 @@ set -x
 	FINALRET=127
 	for i in /home/agl-driver/agl-screenshot-*.png ; do
 		if [ -x ./artiproxy-upload.sh ];then
+			echo "DEBUG: upload screenshot $i"
 			./artiproxy-upload.sh $i $(basename $i)
 		fi
 set +x
